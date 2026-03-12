@@ -7,10 +7,13 @@ public class StoredInfo {
 
     private String statusCode;
 
-    public StoredInfo(String requestHash, String responseBody, String statusCode) {
+    private boolean processing;
+
+    public StoredInfo(String requestHash, String responseBody, String statusCode, boolean processing) {
         this.requestHash = requestHash;
         this.responseBody = responseBody;
         this.statusCode = statusCode;
+        this.processing = processing;
     }
 
     public String getRequestHash() {
@@ -23,5 +26,13 @@ public class StoredInfo {
 
     public String getStatusCode() {
         return statusCode;
+    }
+
+    public boolean isProcessing() {
+        return processing;
+    }
+
+    public void setProcessing(boolean processing) {
+        this.processing = processing;
     }
 }

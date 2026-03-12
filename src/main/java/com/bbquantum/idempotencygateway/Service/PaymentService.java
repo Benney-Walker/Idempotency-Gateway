@@ -18,31 +18,45 @@ public class PaymentService {
     public ResponseEntity<?> processPayment(String key, PaymentRequest paymentRequest) throws InterruptedException {
         String requestHash = hashRequestBody(paymentRequest);
 
-        if (infoStorage.contains(key)) {
-            StoredInfo existing = infoStorage.getStoredInfo(key);
+        synchronized (key.intern()) {
 
-            if (!existing.getRequestHash().equals(requestHash)) {
-                return ResponseEntity.status(409)
-                        .body("Idempotent request hash mismatch! Key already used");
+            if (infoStorage.contains(key)) {
+                StoredInfo existing = infoStorage.getStoredInfo(key);
+
+                if (!existing.getRequestHash().equals(requestHash)) {
+                    return ResponseEntity.status(409)
+                            .body("Idempotent request hash mismatch! Key already used");
+                }
+
+                while (existing.isProcessing()) {
+                    Thread.sleep(1000);
+                }
+
+                return ResponseEntity.status(Integer.parseInt(existing.getStatusCode()))
+                        .header("X-cache-Hit", "true")
+                        .body(existing.getResponseBody());
             }
 
-            return ResponseEntity.status(Integer.parseInt(existing.getStatusCode()))
-                    .header("X-cache-Hit", "true")
-                    .body(existing.getResponseBody());
+            String storedResponse = "Charged = " + paymentRequest.getAmount()
+                    + " " + "Currency = " + paymentRequest.getCurrency();
+
+            StoredInfo newInfo = new StoredInfo(
+                    requestHash, storedResponse, "201", true
+            );
+
+            infoStorage.setStoredInfo(key, newInfo); //Stores new transaction with the specific key
+
+            Thread.sleep(2000);
+
+            StoredInfo processed  = infoStorage.getStoredInfo(key);
+            processed.setProcessing(false);
+
+            infoStorage.setStoredInfo(key, processed);
+
+
+            return ResponseEntity.status(201).body(storedResponse);
         }
 
-        Thread.sleep(2000);
-
-        String storedResponse = "Charged = " + paymentRequest.getAmount()
-                + " " + "Currency = " + paymentRequest.getCurrency();
-
-        StoredInfo newInfo = new StoredInfo(
-                requestHash, storedResponse, "201"
-        );
-
-        infoStorage.setStoredInfo(key, newInfo); //Stores new transaction with the specific key
-
-        return ResponseEntity.status(201).body(storedResponse);
     }
 
     private String hashRequestBody(PaymentRequest paymentRequest) {
