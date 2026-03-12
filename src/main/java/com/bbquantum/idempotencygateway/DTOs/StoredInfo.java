@@ -1,20 +1,20 @@
 package com.bbquantum.idempotencygateway.DTOs;
 
 public class StoredInfo {
-    private String requestBody;
+    private String requestHash;
 
     private String responseBody;
 
     private String statusCode;
 
-    public StoredInfo(String requestBody, String responseBody, String statusCode) {
-        this.requestBody = requestBody;
+    public StoredInfo(String requestHash, String responseBody, String statusCode) {
+        this.requestHash = requestHash;
         this.responseBody = responseBody;
         this.statusCode = statusCode;
     }
 
-    public String getRequestBody() {
-        return requestBody;
+    public String getRequestHash() {
+        return requestHash;
     }
 
     public String getResponseBody() {
