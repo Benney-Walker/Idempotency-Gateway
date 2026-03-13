@@ -21,4 +21,8 @@ public class InfoStorage {
     public boolean contains(String key) {
         return storedInfo.containsKey(key);
     }
+
+    public void remove(String key) {
+        storedInfo.remove(key);
+    }
 }

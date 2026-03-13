@@ -11,17 +11,64 @@ public class PaymentService {
 
     private final InfoStorage infoStorage;
 
+    private final long EXPIRATION_TIME = 600000;
+
     public PaymentService(InfoStorage infoStorage) {
         this.infoStorage = infoStorage;
     }
 
     public ResponseEntity<?> processPayment(String key, PaymentRequest paymentRequest) throws InterruptedException {
-        String requestHash = hashRequestBody(paymentRequest);
 
         synchronized (key.intern()) {
 
-            if (infoStorage.contains(key)) {
-                StoredInfo existing = infoStorage.getStoredInfo(key);
+            String requestHash = hashRequestBody(paymentRequest);
+
+            StoredInfo existing = infoStorage.getStoredInfo(key);
+
+            if (existing == null) {
+                String storedResponse = "Charged = " + paymentRequest.getAmount()
+                        + " " + "Currency = " + paymentRequest.getCurrency();
+
+                StoredInfo newInfo = new StoredInfo(
+                        requestHash, storedResponse, "201", true
+                );
+
+                infoStorage.setStoredInfo(key, newInfo); //Stores new transaction with the specific key
+
+                Thread.sleep(2000);
+
+                StoredInfo processed  = infoStorage.getStoredInfo(key);
+                processed.setProcessing(false);
+
+                infoStorage.setStoredInfo(key, processed);
+
+
+                return ResponseEntity.status(201).body(storedResponse);
+            } else {
+                long timeLeft = System.currentTimeMillis() - existing.getCreatedAt();
+
+                if (timeLeft > EXPIRATION_TIME) {
+                    infoStorage.remove(key);
+
+                    String storedResponse = "Charged = " + paymentRequest.getAmount()
+                            + " " + "Currency = " + paymentRequest.getCurrency();
+
+                    StoredInfo newInfo = new StoredInfo(
+                            requestHash, storedResponse, "201", true
+                    );
+
+                    infoStorage.setStoredInfo(key, newInfo); //Stores new transaction with the specific key
+
+                    Thread.sleep(2000);
+
+                    StoredInfo processed  = infoStorage.getStoredInfo(key);
+                    processed.setProcessing(false);
+
+                    infoStorage.setStoredInfo(key, processed);
+
+
+                    return ResponseEntity.status(201).body(storedResponse);
+                }
 
                 if (!existing.getRequestHash().equals(requestHash)) {
                     return ResponseEntity.status(409)
@@ -35,26 +82,9 @@ public class PaymentService {
                 return ResponseEntity.status(Integer.parseInt(existing.getStatusCode()))
                         .header("X-cache-Hit", "true")
                         .body(existing.getResponseBody());
+
+
             }
-
-            String storedResponse = "Charged = " + paymentRequest.getAmount()
-                    + " " + "Currency = " + paymentRequest.getCurrency();
-
-            StoredInfo newInfo = new StoredInfo(
-                    requestHash, storedResponse, "201", true
-            );
-
-            infoStorage.setStoredInfo(key, newInfo); //Stores new transaction with the specific key
-
-            Thread.sleep(2000);
-
-            StoredInfo processed  = infoStorage.getStoredInfo(key);
-            processed.setProcessing(false);
-
-            infoStorage.setStoredInfo(key, processed);
-
-
-            return ResponseEntity.status(201).body(storedResponse);
         }
 
     }

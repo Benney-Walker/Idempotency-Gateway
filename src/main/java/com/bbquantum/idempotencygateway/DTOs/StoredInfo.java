@@ -9,11 +9,14 @@ public class StoredInfo {
 
     private boolean processing;
 
+    private long createdAt;
+
     public StoredInfo(String requestHash, String responseBody, String statusCode, boolean processing) {
         this.requestHash = requestHash;
         this.responseBody = responseBody;
         this.statusCode = statusCode;
         this.processing = processing;
+        this.createdAt = System.currentTimeMillis();
     }
 
     public String getRequestHash() {
@@ -34,5 +37,9 @@ public class StoredInfo {
 
     public void setProcessing(boolean processing) {
         this.processing = processing;
+    }
+
+    public long getCreatedAt() {
+        return createdAt;
     }
 }
