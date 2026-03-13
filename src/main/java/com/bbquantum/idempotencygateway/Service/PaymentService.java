@@ -19,77 +19,23 @@ public class PaymentService {
 
     public ResponseEntity<?> processPayment(String key, PaymentRequest paymentRequest) throws InterruptedException {
 
-        synchronized (key.intern()) {
+        String requestHash = hashRequestBody(paymentRequest);
 
-            String requestHash = hashRequestBody(paymentRequest);
+        String storedResponse = "Charged " + paymentRequest.getAmount()
+                + " " + paymentRequest.getCurrency();
 
-            StoredInfo existing = infoStorage.getStoredInfo(key);
+        StoredInfo newInfo = new StoredInfo(
+                requestHash, storedResponse, "201", true
+        );
 
-            if (existing == null) {
-                String storedResponse = "Charged = " + paymentRequest.getAmount()
-                        + " " + "Currency = " + paymentRequest.getCurrency();
+        infoStorage.setStoredInfo(key, newInfo); //Stores new transaction with the specific key
 
-                StoredInfo newInfo = new StoredInfo(
-                        requestHash, storedResponse, "201", true
-                );
+        Thread.sleep(2000);
 
-                infoStorage.setStoredInfo(key, newInfo); //Stores new transaction with the specific key
+        newInfo.setProcessing(false);
 
-                Thread.sleep(2000);
+        infoStorage.setStoredInfo(key, newInfo);
 
-                StoredInfo processed  = infoStorage.getStoredInfo(key);
-                processed.setProcessing(false);
-
-                infoStorage.setStoredInfo(key, processed);
-
-
-                return ResponseEntity.status(201).body(storedResponse);
-            } else {
-                long timeLeft = System.currentTimeMillis() - existing.getCreatedAt();
-
-                if (timeLeft > EXPIRATION_TIME) {
-                    infoStorage.remove(key);
-
-                    String storedResponse = "Charged = " + paymentRequest.getAmount()
-                            + " " + "Currency = " + paymentRequest.getCurrency();
-
-                    StoredInfo newInfo = new StoredInfo(
-                            requestHash, storedResponse, "201", true
-                    );
-
-                    infoStorage.setStoredInfo(key, newInfo); //Stores new transaction with the specific key
-
-                    Thread.sleep(2000);
-
-                    StoredInfo processed  = infoStorage.getStoredInfo(key);
-                    processed.setProcessing(false);
-
-                    infoStorage.setStoredInfo(key, processed);
-
-
-                    return ResponseEntity.status(201).body(storedResponse);
-                }
-
-                if (!existing.getRequestHash().equals(requestHash)) {
-                    return ResponseEntity.status(409)
-                            .body("Idempotent request hash mismatch! Key already used");
-                }
-
-                while (existing.isProcessing()) {
-                    Thread.sleep(1000);
-                }
-
-                return ResponseEntity.status(Integer.parseInt(existing.getStatusCode()))
-                        .header("X-cache-Hit", "true")
-                        .body(existing.getResponseBody());
-
-
-            }
-        }
-
-    }
-
-    private String hashRequestBody(PaymentRequest paymentRequest) {
-        return paymentRequest.getAmount() + "-" + paymentRequest.getCurrency();
+        return ResponseEntity.status(201).body(storedResponse);
     }
 }
