@@ -1,6 +1,7 @@
 package com.bbquantum.idempotencygateway.Controller;
 
 import com.bbquantum.idempotencygateway.DTOs.PaymentRequest;
+import com.bbquantum.idempotencygateway.Service.IdempotencyLayer;
 import com.bbquantum.idempotencygateway.Service.PaymentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,17 +12,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class PaymentController {
 
-    private final PaymentService paymentService;
+    private final IdempotencyLayer idempotencyLayer;
 
-    public PaymentController(PaymentService paymentService) {
-        this.paymentService = paymentService;
+    public PaymentController(IdempotencyLayer idempotencyLayer) {
+        this.idempotencyLayer = idempotencyLayer;
     }
 
     @PostMapping("/process-payment")
     public ResponseEntity<?> processPayment(@RequestHeader("Idempotency-Key") String key,
                                             @RequestBody PaymentRequest paymentRequest) throws InterruptedException {
 
-        return paymentService.processPayment(key, paymentRequest);
+        return idempotencyLayer.checkRequestValidity(key,paymentRequest);
     }
 
 }

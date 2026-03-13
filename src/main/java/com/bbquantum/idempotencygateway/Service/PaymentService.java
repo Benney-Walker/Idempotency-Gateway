@@ -3,6 +3,7 @@ package com.bbquantum.idempotencygateway.Service;
 import com.bbquantum.idempotencygateway.DTOs.PaymentRequest;
 import com.bbquantum.idempotencygateway.DTOs.StoredInfo;
 import com.bbquantum.idempotencygateway.Storage.InfoStorage;
+import com.bbquantum.idempotencygateway.Utility.UtilityClass;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -11,15 +12,16 @@ public class PaymentService {
 
     private final InfoStorage infoStorage;
 
-    private final long EXPIRATION_TIME = 600000;
+    private final UtilityClass utilityClass;
 
-    public PaymentService(InfoStorage infoStorage) {
+    public PaymentService(InfoStorage infoStorage,  UtilityClass utilityClass) {
         this.infoStorage = infoStorage;
+        this.utilityClass = utilityClass;
     }
 
     public ResponseEntity<?> processPayment(String key, PaymentRequest paymentRequest) throws InterruptedException {
 
-        String requestHash = hashRequestBody(paymentRequest);
+        String requestHash = utilityClass.hashRequestBody(paymentRequest);
 
         String storedResponse = "Charged " + paymentRequest.getAmount()
                 + " " + paymentRequest.getCurrency();

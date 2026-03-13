@@ -5,9 +5,9 @@ import com.bbquantum.idempotencygateway.DTOs.StoredInfo;
 import com.bbquantum.idempotencygateway.Storage.InfoStorage;
 import com.bbquantum.idempotencygateway.Utility.UtilityClass;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 public class IdempotencyLayer {
 
     private final PaymentService paymentService;
@@ -33,7 +33,7 @@ public class IdempotencyLayer {
                         .body("Idempotent request hash mismatch! Key already used");
             }
 
-            if (!checkProcessingState(key)) {
+            if (checkProcessingState(key)) {
                 Thread.sleep(1000);
             }
 

@@ -37,6 +37,7 @@ public class StoredInfo {
 
     public void setProcessing(boolean processing) {
         this.processing = processing;
+        this.createdAt = System.currentTimeMillis();
     }
 
     public long getCreatedAt() {

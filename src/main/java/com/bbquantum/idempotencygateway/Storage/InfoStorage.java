@@ -3,6 +3,8 @@ package com.bbquantum.idempotencygateway.Storage;
 import com.bbquantum.idempotencygateway.DTOs.StoredInfo;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -24,5 +26,9 @@ public class InfoStorage {
 
     public void remove(String key) {
         storedInfo.remove(key);
+    }
+
+    public List<StoredInfo> getStoredInfoList() {
+        return Collections.unmodifiableList((List<? extends StoredInfo>) storedInfo.values());
     }
 }
