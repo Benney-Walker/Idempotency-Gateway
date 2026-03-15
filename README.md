@@ -100,13 +100,13 @@ src/main/java/com/bbquantum/idempotencygateway/
 ## Prerequisites
 
 * Java 21
-* Maven 4.0+
+* Maven 4.0.3
 
 ## Run the Server
 
 ```bash
 # Clone the repository
-git clone https://github.com/<your-username>/idempotency-gateway.git
+git clone https://github.com/Benney-Walker/Idempotency-Gateway
 
 cd idempotency-gateway
 
@@ -176,7 +176,7 @@ Response
 Body
 
 ```
-Charged 100.0 GHS
+Charged 100 GHS
 ```
 
 This request triggers the **actual payment processing simulation**, which takes about **2 seconds**.
@@ -207,7 +207,7 @@ X-Cache-Hit: true
 Body
 
 ```
-Charged 100.0 GHS
+Charged 100 GHS
 ```
 
 The system **returns the cached response instantly** without processing the payment again.
