@@ -28,7 +28,7 @@ public class InfoStorage {
         storedInfo.remove(key);
     }
 
-    public List<StoredInfo> getStoredInfoList() {
-        return Collections.unmodifiableList((List<? extends StoredInfo>) storedInfo.values());
+    public ConcurrentHashMap<String, StoredInfo> getStorageMap() {
+        return storedInfo;
     }
 }

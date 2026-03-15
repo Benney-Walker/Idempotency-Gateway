@@ -39,6 +39,7 @@ public class IdempotencyLayer {
 
             StoredInfo storedInfo = infoStorage.getStoredInfo(key);
             return ResponseEntity.status(201)
+                    .header("X-Cache-Hit", "true")
                     .body(storedInfo.getResponseBody());
         }
     }
