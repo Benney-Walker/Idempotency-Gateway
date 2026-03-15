@@ -350,7 +350,6 @@ Key expiration ensures:
 
 * efficient memory usage
 * prevention of stale key reuse
-* improved system stability
 
 ---
 
